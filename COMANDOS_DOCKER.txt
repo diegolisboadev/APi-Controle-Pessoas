@@ -1,0 +1,5 @@
+
+# COMANDOS A SEREM USADOS COM O DOCKER (PARA O DOCKER)
+
+# Executar um Bash do CONTAINER_NAME
+docker exec -it [CONTAINER_NAME] bash
