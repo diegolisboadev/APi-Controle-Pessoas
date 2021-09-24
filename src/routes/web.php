@@ -13,6 +13,10 @@
 |
 */
 
+use App\Events\Event;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
+
 // Rota Pai
 $router->get('/', function () use ($router) {
     return $router->app->version();
@@ -32,3 +36,23 @@ $router->group(['middleware' => 'auth', 'prefix' => 'pessoas'], function($router
     $router->put('pessoa/editar/{id}', 'ControlePessoasController@editarPessoa');
     $router->delete('pessoa/excluir/{id}', 'ControlePessoasController@excluirPessoa');
 });
+
+/*$router->get('teste', function() {
+    $log = 'Teste';
+    event(new App\Events\ControlePessoasEvent($log));
+});*/
+/*$router->get('teste', function() {
+    $connection = new AMQPStreamConnection('rabbitmq_lumen', 5672, 'admin', '123456');
+    $channel = $connection->channel();
+
+    $channel->queue_declare('ola', false, false, false, false);
+
+    $msg = new AMQPMessage('Olá mundo!!');
+    $channel->basic_publish($msg, '', 'ola');
+
+    echo " [x] Sent 'Olá mundo!'\n";
+
+    $channel->close();
+    $connection->close();
+
+});*/

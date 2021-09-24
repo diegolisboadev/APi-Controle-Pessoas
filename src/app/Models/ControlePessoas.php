@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 # Importante para as usar as funções do Eloquent preparadas para o MongoDB
 use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
-use MongoDB\Operation\FindOneAndUpdate;
 
 class ControlePessoas extends Eloquent
 {

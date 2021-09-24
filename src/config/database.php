@@ -17,7 +17,7 @@
             ],
         ],
 
-        'mysql' => [
+        /*'mysql' => [
             'driver' => 'mysql',
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', 3306),
@@ -31,6 +31,7 @@
             'strict' => env('DB_STRICT_MODE', true),
             'engine' => env('DB_ENGINE', null),
             'timezone' => env('DB_TIMEZONE', '+00:00'),
-        ],
+        ],*/
+
         'migrations' => 'migrations',
 ];

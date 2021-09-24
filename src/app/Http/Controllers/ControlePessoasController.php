@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Event;
 use App\Helpers\Helper;
 use App\Models\ControlePessoas;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use Ramsey\Uuid\Uuid;
 
 class ControlePessoasController extends Controller
 {
+
+    private $amqprabbit;
+
     /**
      * Create a new controller instance.
      *
@@ -19,7 +23,6 @@ class ControlePessoasController extends Controller
      */
     public function __construct()
     {
-        //
         $this->middleware('auth:api');
     }
 
@@ -55,7 +58,7 @@ class ControlePessoasController extends Controller
         try {
 
             $pessoa = new ControlePessoas();
-            $pessoa->id = (int) preg_replace("/\D+/", "", Str::uuid()->toString()); // Deixar somente os números do UUID4
+            $pessoa->id = preg_replace("/\D+/", "", Uuid::uuid4()->toString()); // Deixar somente os números do UUID4
             $pessoa->nome = ucfirst($request->nome);
             $pessoa->sexo = Str::upper($request->sexo);
             $pessoa->peso = floatval($request->peso);
@@ -63,11 +66,18 @@ class ControlePessoasController extends Controller
             $pessoa->imc = round(floatval($request->peso / pow($request->altura, 2)), 2);
             $pessoa->save();
 
+            // Evento de Criação
+            event(new \App\Events\ControlePessoasEvent("Cadastro da pessoa {$request->nome}"));
+
             return response()->json([
                 'status' => 201,
                 'acao' => 'criação',
                 'resultado' => 'sucesso'
             ], 201);
+
+            // Cadastro da Pessoa
+            $this->amqprabbit->sendMessage("Cadastro da pessoa {$pessoa->nome}");
+
 
         } catch(Exception $e) {
             return response()->json([
@@ -114,7 +124,7 @@ class ControlePessoasController extends Controller
                 $request->nome, 'id', $id))
             {
 
-                ControlePessoas::where('id', intval($id))
+                ControlePessoas::where('id', $id)
                 ->first()->update(
                     [
                         'nome' => ucfirst($request->nome),
@@ -124,6 +134,9 @@ class ControlePessoasController extends Controller
                         'imc' => round(floatval($request->peso / pow($request->altura, 2)), 2)
                     ]
                 );
+
+                // Evento de Edição
+                event(new \App\Events\ControlePessoasEvent("Edição da pessoa {$request->nome}"));
 
                 return response()->json([
                     'status' => 201,
@@ -159,6 +172,9 @@ class ControlePessoasController extends Controller
      */
     public function pessoas() {
         try {
+
+            // Quantidade de Pessoas
+            event(new \App\Events\ControlePessoasEvent('Foram Listadas ('.ControlePessoas::count().') Pessoas'));
 
             return response()->json([
                 'status' => 200,
@@ -197,7 +213,11 @@ class ControlePessoasController extends Controller
 
         try {
 
-            $pessoa = ControlePessoas::where('id', intval($id))->get();
+            $pessoa = ControlePessoas::where('id', $id)->get();
+
+            // Listagem de 1 Pessoa
+            event(new \App\Events\ControlePessoasEvent("Listagem da Pessoa {$pessoa->nome}"));
+
             return response()->json([
                 'status' => 200,
                 'acao' => 'buscar',
@@ -235,7 +255,11 @@ class ControlePessoasController extends Controller
 
         try {
 
-            $pessoa = ControlePessoas::where('id', intval($id))->delete();
+            $pessoa = ControlePessoas::where('id', $id)->delete();
+
+            // Evento de Edição
+            event(new \App\Events\ControlePessoasEvent("Exclusão da pessoa {$pessoa->nome}"));
+
             return response()->json([
                 'status' => 200,
                 'acao' => 'excluir',

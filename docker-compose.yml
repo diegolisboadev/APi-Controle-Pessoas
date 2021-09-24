@@ -22,6 +22,8 @@ services:
   mongodb:
     image: mongo:latest
     container_name: mongodb_lumen
+    volumes:
+      - './data-mongodb:/data/db'
     restart: unless-stopped
     tty: true
     ports: 
@@ -89,5 +91,24 @@ services:
       - mongodb
     working_dir: /var/www/html
     entrypoint: ['php', '/var/www/html/artisan']
+    networks: 
+      - lumen
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_lumen
+    restart: always
+    tty: true
+    ports: 
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./dados-rabbitmq:/var/lib/rabbitmq/
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=123456
+    depends_on:
+      - php
+      - mongodb
     networks: 
       - lumen
